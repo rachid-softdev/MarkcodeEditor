@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documents      Document[]
+  collaborators Collaborator[]
+  sessions      Session[]
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  title       String
+  content     String   @db.Text
+  isPublic    Boolean  @default(false)
+  shareToken  String?  @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collaborators  Collaborator[]
+  versions       DocumentVersion[]
+
+  @@index([userId])
+  @@index([shareToken])
+}
+
+model Collaborator {
+  id         String   @id @default(uuid())
+  role       Role     @default(VIEWER)
+  createdAt  DateTime @default(now())
+  documentId String
+  userId     String
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, userId])
+}
+
+model DocumentVersion {
+  id         String   @id @default(uuid())
+  content    String   @db.Text
+  createdAt  DateTime @default(now())
+  documentId String
+  userId     String?
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+}
+
+enum Role {
+  OWNER
+  EDITOR
+  VIEWER
+}

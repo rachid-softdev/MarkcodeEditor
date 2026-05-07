@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { I18nProvider } from '@/components/providers/i18n-provider';
+import { AuthProvider } from '@/components/providers/auth-provider';
 import { Toaster } from '@/components/ui/sonner';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -38,10 +39,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange={false}
         >
+          <AuthProvider>
           <I18nProvider>
             {children}
             <Toaster richColors position="top-right" />
           </I18nProvider>
+        </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
